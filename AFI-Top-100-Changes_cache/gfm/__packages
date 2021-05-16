@@ -1,0 +1,17 @@
+base
+rvest
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+glue
+ggbump
+ggtext
+sysfonts
+showtextdb
+showtext

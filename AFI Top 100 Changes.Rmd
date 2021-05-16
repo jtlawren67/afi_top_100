@@ -1,0 +1,123 @@
+---
+title: "AFI Top 100 List Changes 1998 - 2007"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is a expanded version of the visualization of what is hosted on [my blog](https://jlaw.netlify.app) to include all 100 movies rather than just a limited set of the Top 30.
+
+The American Film Institute released a list of the [Top 100 American movies in 1998](https://en.wikipedia.org/wiki/AFI%27s_100_Years...100_Movies).  For the 10th Anniversary they released an updated list.  This is how those lists differ from each other:
+
+```{r echo=FALSE,  message=FALSE, warning=FALSE, error=FALSE}
+library(rvest)
+library(tidyverse)
+library(glue)
+library(ggbump)
+library(ggtext)
+library(showtext)
+```
+
+
+
+```{r echo = FALSE, cache=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+# Load Google Font
+font_add_google("Nunito", "afi")
+font_add_google("Roboto", "rob")
+showtext_auto()
+
+
+#https://cran.r-project.org/web/packages/ggbump/readme/README.html
+
+
+#Get Data
+tbl <- read_html('https://en.wikipedia.org/wiki/AFI%27s_100_Years...100_Movies') %>%
+  html_element(css = '.sortable') %>%
+  html_table() %>%
+  janitor::clean_names()
+
+
+#Reorganize Talbe
+tbl2 <- tbl %>%
+  mutate(title_lbl = glue("{film} ({release_year})"),
+         across(ends_with('rank'), ~na_if(., "—")),
+         title_lbl = str_replace_all(title_lbl, "The Lord of the Rings:", "LOTR:")
+  ) %>%
+  pivot_longer(
+    cols = contains('rank'),
+    names_to = 'year',
+    values_to = 'rank'
+  ) %>%
+  mutate(year = str_remove_all(year, '\\D+') %>% as.integer(),
+         rank = as.integer(rank))
+
+
+```
+```{r echo=FALSE, fig.height=24, fig.width=16, message=FALSE, warning=FALSE, error=FALSE}
+##Plot
+num_films = 100
+
+tbl2 %>%
+  filter(rank <= num_films) %>%
+  ggplot(aes(x = year, y = rank, color = title_lbl)) +
+  #Add Dots
+  geom_point(size = 7) +
+  #Add TItles
+  geom_text(data = . %>% filter(year == min(year)),
+            aes(x = year - .5, label = title_lbl), size = 5, hjust = 1, family = 'rob') +
+  geom_text(data = . %>% filter(year == max(year)),
+            aes(x = year + .5, label = title_lbl), size = 5, hjust = 0, family = 'rob') +
+  # Add Lines
+  geom_bump(size = 2, smooth = 8) + 
+  scale_x_continuous(limits = c(1987, 2019),
+                     breaks = c(1998, 2007),
+                     position = 'top',
+                     expand = c(0,0)) +
+  scale_y_reverse(expand = c(.02, 0)) +
+  labs(title = glue("How has the AFI Top {num_films} Movies Changed Between Lists"),
+       subtitle = "Comparing 1998 and 2007s lists",
+       caption = "***Source:*** Wikipedia",
+       x = "List Year",
+       y = "Rank") + 
+  # Set Colors and Sizes
+  theme(
+    text = element_text(family = 'afi'),
+    legend.position = "none",
+    panel.grid = element_blank(),
+    plot.title = element_text(hjust = .5, color = "white", size = 20),
+    plot.caption = element_markdown(hjust = 1, color = "white", size = 12),
+    plot.subtitle = element_text(hjust = .5, color = "white", size = 18),
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(face = 2, color = "white", size = 18),
+    panel.background = element_rect(fill = "black"),
+    plot.background = element_rect(fill = "black")
+  ) + 
+  ## Add in the Ranks with the Circles
+  geom_point(data = tibble(x = 1987.5, y = 1:num_films), aes(x = x, y = y), 
+             inherit.aes = F,
+             color = "white",
+             size = 10,
+             pch = 21) +
+  geom_text(data = tibble(x = 1987.5, y = 1:num_films), aes(x = x, y = y, label = y), 
+            inherit.aes = F,
+            color = "white",
+            fontface = 2,
+            family = 'rob') + 
+  geom_point(data = tibble(x = 2017.5, y = 1:num_films), aes(x = x, y = y), 
+             inherit.aes = F,
+             color = "white",
+             size = 10,
+             pch = 21) +
+  geom_text(data = tibble(x = 2017.5, y = 1:num_films), aes(x = x, y = y, label = y), 
+            inherit.aes = F,
+            color = "white",
+            fontface = 2,
+            family = 'rob') 
+
+```
+
