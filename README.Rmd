@@ -101,7 +101,7 @@ tbl2 %>%
   geom_point(data = tibble(x = 1987.5, y = 1:num_films), aes(x = x, y = y), 
              inherit.aes = F,
              color = "white",
-             size = 10,
+             size = 8,
              pch = 21) +
   geom_text(data = tibble(x = 1987.5, y = 1:num_films), aes(x = x, y = y, label = y), 
             inherit.aes = F,
@@ -111,7 +111,7 @@ tbl2 %>%
   geom_point(data = tibble(x = 2017.5, y = 1:num_films), aes(x = x, y = y), 
              inherit.aes = F,
              color = "white",
-             size = 10,
+             size = 8,
              pch = 21) +
   geom_text(data = tibble(x = 2017.5, y = 1:num_films), aes(x = x, y = y, label = y), 
             inherit.aes = F,
